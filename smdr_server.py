@@ -1,6 +1,6 @@
 import asyncio
+import random
 import telnetlib3
-import time
 
 from telnetlib3.server_shell import readline
 
@@ -63,8 +63,8 @@ def shell(reader, writer):
 
             if password.lower() == 'pccsmdr':
                 for line in s.getline():
-                    # TODO: random sleep
-                    time.sleep(1)
+                    sleep_time = random.random() * 2
+                    yield from asyncio.sleep(sleep_time)
                     writer.write(line + CR)
                     yield from writer.drain()
         elif command:
