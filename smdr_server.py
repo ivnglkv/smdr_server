@@ -17,6 +17,7 @@ class SmdrSingleton(object):
         while True:
             with open('/tmp/lorem', 'r') as log_file:
                 for line in log_file:
+                    # TODO: generate headers for every page
                     yield line
 
 
