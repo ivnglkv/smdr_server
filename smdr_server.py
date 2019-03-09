@@ -76,7 +76,17 @@ def shell(reader, writer):
 
 
 if __name__ == '__main__':
+    """We need very big timeout because clients will be running
+    for quite long period of time.
+    This value will give us about 25 days of passing SMDR data to client.
+
+    # TODO: This is not complete solution for this problem. Why telnetlib3
+    counts timeout only on read operations? Successful write should
+    reset timer too.
+    Maybe there is a way to do it without patching telnetlib3"""
+    timeout = 2147483
     loop = asyncio.get_event_loop()
-    coro = telnetlib3.create_server(port=6023, shell=shell)
+    coro = telnetlib3.create_server(port=6023, shell=shell,
+                                    timeout=timeout)
     server = loop.run_until_complete(coro)
     loop.run_until_complete(server.wait_closed())
