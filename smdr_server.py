@@ -3,9 +3,10 @@ import random
 import telnetlib3
 
 from argparse import ArgumentParser
-from telnetlib3.server_shell import readline
 
-CR, LF, NUL = '\r\n\x00'
+from utils import readline
+
+CR, LF = '\r\n'
 
 
 class SmdrSingleton(object):
@@ -38,8 +39,8 @@ def shell(reader, writer):
 
     writer.transport.set_write_buffer_limits(low=0, high=0)
 
-    linereader = readline(reader, writer)
-    linereader.send(None)
+    cmdreader = readline(reader, writer)
+    cmdreader.send(None)
 
     s = SmdrSingleton()
 
@@ -53,7 +54,7 @@ def shell(reader, writer):
             inp = yield from reader.read(1)
             if not inp:
                 return
-            command = linereader.send(inp)
+            command = cmdreader.send(inp)
         writer.write(CR + LF)
 
         if command == 'q':
@@ -64,12 +65,15 @@ def shell(reader, writer):
         elif command == 'smdr':
             writer.write('Enter password: ')
             password = None
+
+            password_reader = readline(reader, writer, hide_input=True)
+            password_reader.send(None)
+
             while password is None:
-                # TODO: hide password input
                 inp = yield from reader.read(1)
                 if not inp:
                     return
-                password = linereader.send(inp)
+                password = password_reader.send(inp)
             writer.write(CR + LF)
 
             if password.lower() == s.password:
