@@ -49,7 +49,7 @@ def shell(reader, writer):
             writer.write('Goodbye.' + CR + LF)
             break
         elif command == 'help':
-            writer.write('quit, smdr')
+            writer.write('q, smdr')
         elif command == 'smdr':
             writer.write('Enter password: ')
             password = None
