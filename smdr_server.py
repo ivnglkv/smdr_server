@@ -2,20 +2,30 @@ import asyncio
 import random
 import telnetlib3
 
+from argparse import ArgumentParser
 from telnetlib3.server_shell import readline
 
 CR, LF, NUL = '\r\n\x00'
 
 
 class SmdrSingleton(object):
-    def __new__(cls):
+    initialized = False
+
+    def __new__(cls, *args, **kwargs):
         if not hasattr(cls, 'instance'):
             cls.instance = super().__new__(cls)
         return cls.instance
 
+    def __init__(self, smdr_logfile=None, smdr_password=None):
+        if not self.initialized:
+            self.logfile = smdr_logfile
+            self.password = smdr_password
+
+            self.initialized = True
+
     def getline(self):
         while True:
-            with open('/tmp/lorem', 'r') as log_file:
+            with open(self.logfile, 'r') as log_file:
                 for line in log_file:
                     # TODO: generate headers for every page
                     yield line
@@ -62,7 +72,7 @@ def shell(reader, writer):
                 password = linereader.send(inp)
             writer.write(CR + LF)
 
-            if password.lower() == 'pccsmdr':
+            if password.lower() == s.password:
                 for line in s.getline():
                     sleep_time = random.random() * 2
                     yield from asyncio.sleep(sleep_time)
@@ -77,6 +87,24 @@ def shell(reader, writer):
 
 
 if __name__ == '__main__':
+    parser = ArgumentParser(
+        description='Fake SMDR server, purposed for testing SMDR analyzing '
+                    'software. It feeds data to clients from sample file '
+                    '(not included with program)')
+    parser.add_argument('-f', '--file', required=True)
+    parser.add_argument('-H', '--host', default='localhost')
+    parser.add_argument('-P', '--port', type=int, default=6023)
+    parser.add_argument('-p', '--password', default='pccsmdr')
+    parser.add_argument('-i', '--input_password',
+                        action='store_true',
+                        help='Read password from user input. This option '
+                             'cancels --password',
+                        )
+
+    args = parser.parse_args()
+
+    s = SmdrSingleton(args.file, args.password)
+
     """We need very big timeout because clients will be running
     for quite long period of time.
     This value will give us about 25 days of passing SMDR data to client.
@@ -87,7 +115,7 @@ if __name__ == '__main__':
     Maybe there is a way to do it without patching telnetlib3"""
     timeout = 2147483
     loop = asyncio.get_event_loop()
-    coro = telnetlib3.create_server(port=6023, shell=shell,
-                                    timeout=timeout)
+    coro = telnetlib3.create_server(host=args.host, port=args.port,
+                                    shell=shell, timeout=timeout)
     server = loop.run_until_complete(coro)
     loop.run_until_complete(server.wait_closed())
