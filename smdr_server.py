@@ -1,4 +1,5 @@
 import asyncio
+import getpass
 import random
 import telnetlib3
 
@@ -107,7 +108,12 @@ if __name__ == '__main__':
 
     args = parser.parse_args()
 
-    s = SmdrSingleton(args.file, args.password)
+    if args.input_password:
+        password = getpass.getpass()
+    else:
+        password = args.password
+
+    s = SmdrSingleton(args.file, password)
 
     """We need very big timeout because clients will be running
     for quite long period of time.
