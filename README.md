@@ -24,3 +24,11 @@ Minimum required Python version is 3.3
 `-p, --password` — prompt for a password to change it
 from default `pccsmdr`. Clients are prompted for this password
 to access SMDR data.
+
+## Usage
+
+Telnet commands:
+
+- `smdr` — get smdr data
+- `q` — close connection
+- `help` — show available commands
