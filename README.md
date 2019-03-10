@@ -9,6 +9,11 @@ but I will upload one later.
 
 ## How to run
 
+Minimum required Python version is 3.3
+
+1. Install dependencies:  
+`pip3 install -r requirements.txt`
+2. Run server:  
 `python3 smdr_server.py -f sample.log`
 
 ### Command-line options
