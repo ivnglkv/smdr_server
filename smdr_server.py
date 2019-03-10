@@ -99,19 +99,15 @@ if __name__ == '__main__':
     parser.add_argument('-f', '--file', required=True)
     parser.add_argument('-H', '--host', default='localhost')
     parser.add_argument('-P', '--port', type=int, default=6023)
-    parser.add_argument('-p', '--password', default='pccsmdr')
-    parser.add_argument('-i', '--input_password',
-                        action='store_true',
-                        help='Read password from user input. This option '
-                             'cancels --password',
-                        )
+    parser.add_argument('-p', '--password', action='store_true',
+                        help='Read password from user input')
 
     args = parser.parse_args()
 
-    if args.input_password:
+    if args.password:
         password = getpass.getpass()
     else:
-        password = args.password
+        password = 'pccsmdr'
 
     s = SmdrSingleton(args.file, password)
 
