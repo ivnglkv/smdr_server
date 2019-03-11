@@ -48,7 +48,7 @@ def shell(reader, writer):
     while True:
         if command:
             writer.write(CR + LF)
-        writer.write('> ')
+        writer.write('-')
         command = None
         while command is None:
             # TODO: use reader.readline()
@@ -56,7 +56,10 @@ def shell(reader, writer):
             if not inp:
                 return
             command = cmdreader.send(inp)
-        writer.write(CR + LF)
+
+        # Writing CR instead of EOL after command, because Panasonic
+        # telnet interface is doing the same. It looks weird, but so life is
+        writer.write(CR)
 
         if command == 'q':
             writer.write('Goodbye.' + CR + LF)
@@ -64,10 +67,10 @@ def shell(reader, writer):
         elif command == 'help':
             writer.write('q, smdr')
         elif command == 'smdr':
-            writer.write('Enter password: ')
+            writer.write('Enter password:')
             password = None
 
-            password_reader = readline(reader, writer, hide_input=True)
+            password_reader = readline(reader, writer, hidden_ack=True)
             password_reader.send(None)
 
             while password is None:
