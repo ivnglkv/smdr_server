@@ -23,7 +23,9 @@ Minimum required Python version is 3.3
 `-P, --port` — default `6023`  
 `-p, --password` — prompt for a password to change it
 from default `pccsmdr`. Clients are prompted for this password
-to access SMDR data.
+to access SMDR data.  
+`-e, --eol` — EOL sequence. Choices are `CR`, `LF`, `CR+LF`.
+Default is `CR+LF`.
 
 ## Usage
 
