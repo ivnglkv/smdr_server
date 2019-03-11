@@ -18,20 +18,34 @@ class SmdrSingleton(object):
             cls.instance = super().__new__(cls)
         return cls.instance
 
-    def __init__(self, smdr_logfile=None, smdr_password=None, eol=CR+LF):
+    def __init__(self, smdr_logfile=None, smdr_password=None, eol=CR+LF,
+                 records_on_page=60):
         if not self.initialized:
             self.logfile = smdr_logfile
             self.password = smdr_password
             self.eol = eol
+            self.records_on_page = records_on_page
+            self.header = ('  Date     Time    Ext CO        Dial Number      '
+                           '  Ring Duration  Acc code  CD ' + self.eol +
+                           '--------------------------------------------------'
+                           '------------------------------')
 
             self.initialized = True
 
     def getline(self):
+        i = self.records_on_page
+
         while True:
             with open(self.logfile, 'r') as log_file:
                 for line in log_file:
-                    # TODO: generate headers for every page
+                    # Print header after every self.records_on_page + 1 lines
+                    if i % self.records_on_page == 0:
+                        # Add empty line before every header except first one
+                        if i != self.records_on_page:
+                            yield ''
+                        yield self.header
                     yield line
+                    i += 1
 
 
 @asyncio.coroutine
@@ -107,6 +121,7 @@ if __name__ == '__main__':
                         help='Read password from user input')
     parser.add_argument('-e', '--eol', choices=['CR', 'LF', 'CR+LF'],
                         default='CR+LF')
+    parser.add_argument('-n', '--records_on_page', type=int, default=60)
 
     args = parser.parse_args()
 
@@ -121,7 +136,11 @@ if __name__ == '__main__':
         'CR+LF': '\r\n',
     }
 
-    s = SmdrSingleton(args.file, password, eol_aliases[args.eol])
+    if args.records_on_page <= 0:
+        parser.error('number of records on page should be positive integer')
+
+    s = SmdrSingleton(args.file, password,
+                      eol_aliases[args.eol], args.records_on_page)
 
     """We need very big timeout because clients will be running
     for quite long period of time.

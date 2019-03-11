@@ -25,7 +25,9 @@ Minimum required Python version is 3.3
 from default `pccsmdr`. Clients are prompted for this password
 to access SMDR data.  
 `-e, --eol` — EOL sequence. Choices are `CR`, `LF`, `CR+LF`.
-Default is `CR+LF`.
+Default is `CR+LF`.  
+`-n, --lines_per_page` — number of lines per page. Pages are separated
+by special headers.
 
 ## Usage
 
