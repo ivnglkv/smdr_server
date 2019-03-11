@@ -102,7 +102,7 @@ if __name__ == '__main__':
                     '(not included with program)')
     parser.add_argument('-f', '--file', required=True)
     parser.add_argument('-H', '--host', default='localhost')
-    parser.add_argument('-P', '--port', type=int, default=6023)
+    parser.add_argument('-P', '--port', type=int, default=2300)
     parser.add_argument('-p', '--password', action='store_true',
                         help='Read password from user input')
     parser.add_argument('-e', '--eol', choices=['CR', 'LF', 'CR+LF'],
