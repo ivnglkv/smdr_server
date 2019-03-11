@@ -18,10 +18,11 @@ class SmdrSingleton(object):
             cls.instance = super().__new__(cls)
         return cls.instance
 
-    def __init__(self, smdr_logfile=None, smdr_password=None):
+    def __init__(self, smdr_logfile=None, smdr_password=None, eol=CR+LF):
         if not self.initialized:
             self.logfile = smdr_logfile
             self.password = smdr_password
+            self.eol = eol
 
             self.initialized = True
 
@@ -47,7 +48,7 @@ def shell(reader, writer):
 
     while True:
         if command:
-            writer.write(CR + LF)
+            writer.write(s.eol)
         writer.write('-')
         command = None
         while command is None:
@@ -62,7 +63,7 @@ def shell(reader, writer):
         writer.write(CR)
 
         if command == 'q':
-            writer.write('Goodbye.' + CR + LF)
+            writer.write('Goodbye.' + s.eol)
             break
         elif command == 'help':
             writer.write('q, smdr')
@@ -78,18 +79,18 @@ def shell(reader, writer):
                 if not inp:
                     return
                 password = password_reader.send(inp)
-            writer.write(CR + LF)
+            writer.write(s.eol)
 
             if password.lower() == s.password:
                 for line in s.getline():
                     sleep_time = random.random() * 2
                     yield from asyncio.sleep(sleep_time)
-                    writer.write(line + CR)
+                    writer.write(line.rstrip() + s.eol)
                     yield from writer.drain()
         elif command:
             writer.write('no such command.')
         else:
-            writer.write('Goodbye' + CR + LF)
+            writer.write('Goodbye' + s.eol)
             break
     writer.close()
 
@@ -104,6 +105,8 @@ if __name__ == '__main__':
     parser.add_argument('-P', '--port', type=int, default=6023)
     parser.add_argument('-p', '--password', action='store_true',
                         help='Read password from user input')
+    parser.add_argument('-e', '--eol', choices=['CR', 'LF', 'CR+LF'],
+                        default='CR+LF')
 
     args = parser.parse_args()
 
@@ -112,7 +115,13 @@ if __name__ == '__main__':
     else:
         password = 'pccsmdr'
 
-    s = SmdrSingleton(args.file, password)
+    eol_aliases = {
+        'CR': '\r',
+        'LF': '\n',
+        'CR+LF': '\r\n',
+    }
+
+    s = SmdrSingleton(args.file, password, eol_aliases[args.eol])
 
     """We need very big timeout because clients will be running
     for quite long period of time.
