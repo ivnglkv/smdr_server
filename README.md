@@ -20,13 +20,13 @@ Minimum required Python version is 3.3
 
 `-f, --file` — path to sample log file. Required argument.  
 `-H, --host` — server IP address. Default `localhost`  
-`-P, --port` — default `6023`  
+`-P, --port` — default `2300`  
 `-p, --password` — prompt for a password to change it
 from default `pccsmdr`. Clients are prompted for this password
 to access SMDR data.  
 `-e, --eol` — EOL sequence. Choices are `CR`, `LF`, `CR+LF`.
 Default is `CR+LF`.  
-`-n, --lines_per_page` — number of lines per page. Pages are separated
+`-n, --records_on_page` — number of records per page. Pages are separated
 by special headers.
 
 ## Usage
