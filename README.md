@@ -4,8 +4,7 @@ This is fake SMDR server, emulating Panasonic PBX SMDR server behavior. It
 provides access to SMDR data over telnet. It can be used to test SMDR
 analyzing software.
 
-Calls data is taken from sample file. Samples isn't included at this moment,
-but I will upload one later.
+Calls data is taken from sample file. You can find examples with randomly generated data in `samples` folder.
 
 ## How to run
 
@@ -14,7 +13,7 @@ Minimum required Python version is 3.3
 1. Install dependencies:  
 `pip3 install -r requirements.txt`
 2. Run server:  
-`python3 smdr_server.py -f sample.log`
+`python3 smdr_server.py -f samples/sample1.log`
 
 ### Command-line options
 
