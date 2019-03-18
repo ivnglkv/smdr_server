@@ -25,7 +25,12 @@ def readline(reader, writer, show_ack=True, eol=CR+LF,
     command, inp, last_inp = '', '', ''
     inp = yield None
     while True:
-        if inp in (LF, NUL) and last_inp == CR:
+        if inp in (CR, LF, NUL) and not command:
+            # Skip special symbols at the left of input
+            last_inp = inp
+            inp = yield None
+
+        elif inp in (LF, NUL) and last_inp == CR:
             last_inp = inp
             inp = yield None
 
