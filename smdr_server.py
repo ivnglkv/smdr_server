@@ -1,6 +1,7 @@
 import asyncio
 import getpass
 import random
+import re
 import telnetlib3
 
 from argparse import ArgumentParser
@@ -123,7 +124,7 @@ def shell(reader, writer):
                 for line in s.getline():
                     sleep_time = random.random() * 2
                     yield from asyncio.sleep(sleep_time)
-                    s.write(writer, line.rstrip() + s.eol)
+                    s.write(writer, re.sub('(\n|\r)*$', '', line) + s.eol)
                     yield from writer.drain()
         elif command:
             s.write(writer, 'No such command.')
