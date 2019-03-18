@@ -1,4 +1,5 @@
 import asyncio
+import logging
 
 CR, LF, NUL = '\r\n\x00'
 
@@ -37,7 +38,10 @@ def readline(reader, writer, show_ack=True, eol=CR+LF,
                     ack = replace_ack_symbols_with * len(command)
                 else:
                     ack = command.upper()
-                writer.echo(eol + ack)
+
+                echo_data = eol + ack
+                writer.echo(echo_data)
+                log_echo(echo_data)
 
             inp = yield command
             command = ''
@@ -46,7 +50,10 @@ def readline(reader, writer, show_ack=True, eol=CR+LF,
             # backspace over input
             if command:
                 command = command[:-1]
-                writer.echo('\b \b')
+
+                echo_data = '\b \b'
+                writer.echo(echo_data)
+                log_echo(echo_data)
             last_inp = inp
             inp = yield None
 
@@ -55,5 +62,13 @@ def readline(reader, writer, show_ack=True, eol=CR+LF,
             command += inp
 
             writer.echo(inp)
+            log_echo(inp)
+
             last_inp = inp
             inp = yield None
+
+
+def log_echo(data):
+    logger = logging.getLogger('smdr_server.logger')
+
+    logger.info('Echo: {}'.format(data.encode('ascii')))

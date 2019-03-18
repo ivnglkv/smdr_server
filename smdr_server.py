@@ -19,7 +19,7 @@ class SmdrSingleton(object):
         return cls.instance
 
     def __init__(self, smdr_logfile=None, smdr_password=None, eol=CR+LF,
-                 records_on_page=60):
+                 records_on_page=60, loglevel='warning'):
         if not self.initialized:
             self.logfile = smdr_logfile
             self.password = smdr_password
@@ -29,6 +29,11 @@ class SmdrSingleton(object):
                            '  Ring Duration  Acc code  CD ' + self.eol +
                            '--------------------------------------------------'
                            '------------------------------')
+
+            """Using logger creation function provided with telnetlib3
+            because it's default log format meets our requirements"""
+            self.logger = telnetlib3.accessories.make_logger(
+                'smdr_server.logger', loglevel=loglevel)
 
             self.initialized = True
 
@@ -47,6 +52,16 @@ class SmdrSingleton(object):
                     yield line
                     i += 1
 
+    def log_input(self, input):
+        self.logger.info('Got input {}'.format(input.encode('ascii')))
+
+    def log_output(self, output):
+        self.logger.info('Sent {}'.format(output.encode('ascii')))
+
+    def write(self, writer, data):
+        writer.write(data)
+        self.log_output(data)
+
 
 @asyncio.coroutine
 def shell(reader, writer):
@@ -62,8 +77,8 @@ def shell(reader, writer):
 
     while True:
         if command:
-            writer.write(s.eol)
-        writer.write('-')
+            s.write(writer, s.eol)
+        s.write(writer, '-')
         command = None
         while command is None:
             # TODO: use reader.readline()
@@ -72,17 +87,24 @@ def shell(reader, writer):
                 return
             command = cmdreader.send(inp)
 
+        s.log_input(command)
+
         # Writing CR instead of EOL after command, because Panasonic
         # telnet interface is doing the same. It looks weird, but so life is
-        writer.write(CR)
+        s.write(writer, CR)
 
         if command == 'q':
-            writer.write('Goodbye.' + s.eol)
+            reply = 'Goodbye.' + s.eol
+            s.write(writer, reply)
             break
         elif command == 'help':
-            writer.write('q, smdr')
+            reply = 'q, smdr'
+            s.write(writer, reply)
         elif command == 'smdr':
-            writer.write('Enter password:')
+            reply = 'Enter password:'
+
+            s.write(writer, reply)
+
             password = None
 
             password_reader = readline(reader, writer, hidden_ack=True)
@@ -93,18 +115,20 @@ def shell(reader, writer):
                 if not inp:
                     return
                 password = password_reader.send(inp)
-            writer.write(s.eol)
+
+            s.log_input(password)
+            s.write(writer, s.eol)
 
             if password.lower() == s.password:
                 for line in s.getline():
                     sleep_time = random.random() * 2
                     yield from asyncio.sleep(sleep_time)
-                    writer.write(line.rstrip() + s.eol)
+                    s.write(writer, line.rstrip() + s.eol)
                     yield from writer.drain()
         elif command:
-            writer.write('no such command.')
+            s.write(writer, 'No such command.')
         else:
-            writer.write('Goodbye' + s.eol)
+            s.write(writer, 'Goodbye' + s.eol)
             break
     writer.close()
 
@@ -122,6 +146,9 @@ if __name__ == '__main__':
     parser.add_argument('-e', '--eol', choices=['CR', 'LF', 'CR+LF'],
                         default='CR+LF')
     parser.add_argument('-n', '--records_on_page', type=int, default=60)
+    parser.add_argument('-v', '--loglevel',
+                        choices=['DEBUG', 'INFO', 'WARNING', 'ERROR', 'CRITICAL'],
+                        help='Set logging level. Default is WARNING')
 
     args = parser.parse_args()
 
@@ -140,7 +167,8 @@ if __name__ == '__main__':
         parser.error('number of records on page should be positive integer')
 
     s = SmdrSingleton(args.file, password,
-                      eol_aliases[args.eol], args.records_on_page)
+                      eol_aliases[args.eol], args.records_on_page,
+                      args.loglevel)
 
     """We need very big timeout because clients will be running
     for quite long period of time.
@@ -155,4 +183,8 @@ if __name__ == '__main__':
     coro = telnetlib3.create_server(host=args.host, port=args.port,
                                     shell=shell, timeout=timeout)
     server = loop.run_until_complete(coro)
+
+    s.logger.info('Created server on {}:{}, feeding SMDR file {}'.format(
+              args.host, args.port, args.file))
+
     loop.run_until_complete(server.wait_closed())
