@@ -146,7 +146,7 @@ if __name__ == '__main__':
     parser.add_argument('-e', '--eol', choices=['CR', 'LF', 'CR+LF'],
                         default='CR+LF')
     parser.add_argument('-n', '--records_on_page', type=int, default=60)
-    parser.add_argument('-v', '--loglevel',
+    parser.add_argument('-v', '--loglevel', default='WARNING',
                         choices=['DEBUG', 'INFO', 'WARNING', 'ERROR', 'CRITICAL'],
                         help='Set logging level. Default is WARNING')
 
