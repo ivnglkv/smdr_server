@@ -101,7 +101,7 @@ def shell(reader, writer):
             reply = 'q, smdr'
             s.write(writer, reply)
         elif command == 'smdr':
-            reply = 'Enter password:'
+            reply = 'Enter Password:'
 
             s.write(writer, reply)
 
